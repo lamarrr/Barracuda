@@ -1,0 +1,5 @@
+
+
+Number of threads allocated must be exact sufficient ammount, else wastage
+template all kernel data types
+dim3 indexes

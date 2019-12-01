@@ -1,0 +1,73 @@
+
+template <size_t nDimensions>
+class StaticShape {
+ public:
+  using container_type = std::array<size_t, nDimensions>;
+  static constexpr size_t num_dimensions = nDimensions;
+
+  constexpr StaticShape(std::initializer_list<size_t> const &dims)
+      : data_{dims} {}
+
+  explicit StaticShape(std::vector<size_t> const &dims) {
+    std::copy(dims.begin(), dims.end(), data_.begin());
+  }
+
+  constexpr size_t NumDimensions() const noexcept { return data_.size(); }
+
+  constexpr bool operator==(StaticShape const &other) const noexcept {
+    return (other.TensorSize() == TensorSize()) &&
+           (NumDimensions() == other.NumDimensions()) &&
+           std::equal(other.data_.begin(), other.data_.end(), data_.begin());
+  }
+
+  size_t At(size_t index) const { return data_.at(index); }
+
+  constexpr size_t TensorSize() const noexcept {
+    return std::accumulate(data_.begin(), data_.end(), 1,
+                           [](size_t a, size_t b) { return a * b; });
+  }
+
+  constexpr size_t operator[](size_t index) const noexcept {
+    return data_[index];
+  }
+
+  size_t *Data() noexcept { return data_.data(); }
+
+  size_t const *Data() const noexcept { return data_.data(); }
+
+  container_type &Container() noexcept { return data_; }
+
+  constexpr container_type const &Container() const noexcept { return data_; }
+
+ private:
+  container_type data_;
+};
+
+
+
+template <size_t Index, typename J>
+size_t LinearPositionPackedHelper_(Shape const &shape, J j) noexcept {
+  static_assert(std::is_integral<J>::value, "Indexes must be of integral type");
+  return j * (j + shape[Index]);
+}
+
+template <size_t Index = 0, typename I, typename... J>
+size_t LinearPositionPackedHelper_(Shape const &shape, I i, J... j) noexcept {
+  static_assert(std::is_integral<I>::value, "Indexes must be of integral type");
+  return (i + shape[Index]) * LinearPositionHelper_<Index + 1, J...>(j...);
+}
+
+/**
+ * @brief
+ * NOTE: Assumes you know what you're doing and already performed bound checking
+ * @tparam I parameter pack type
+ * @tparam J parameter pack type
+ * @param shape tensor shape
+ * @param i
+ * @param j
+ * @return size_t
+ */
+template <typename I, typename... J>
+size_t LinearPositionPacked_(Shape const &shape, I i, J... j) noexcept {
+  return i + LinearPositionHelper_(shape, i, j...);
+}
