@@ -1,0 +1,13 @@
+.ninja_deps
+.ninja_log
+*.o
+*.a
+*.bin
+.vscode
+.*
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake_install
+Makefile
+/build
+/dump
